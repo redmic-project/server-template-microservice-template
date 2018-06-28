@@ -1,0 +1,20 @@
+version: '3.5'
+
+services:
+  template:
+    image: registry.redmic.net/redmic-server/template:${IMAGE_TAG:-latest}
+    environment:
+      - SPRING_PROFILES_ACTIVE
+      - JAVA_OPTS=-Xmx1g -Xss1g
+    networks:
+      - redmic-net
+    healthcheck:
+      test: wget --spider -S -t 3 http://localhost:port/api/template/actuator/health
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 2m
+
+networks:
+  redmic-net:
+    external: true

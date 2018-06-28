@@ -1,0 +1,26 @@
+version: '3.5'
+
+services:
+  template:
+    ports:
+      - port
+    networks:
+      - traefik-net
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.port: port
+        traefik.docker.network: traefik-net
+        traefik.frontend.rule: PathPrefix:/api/template
+        traefik.backend: template
+      placement:
+        constraints:
+          - node.role == worker
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+
+networks:
+  traefik-net:
+    external: true
