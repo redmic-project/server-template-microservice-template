@@ -2,5 +2,6 @@
 !.gitignore
 !.gitlab-ci.yml
 !.dockerignore
+!.env
 target
 dist

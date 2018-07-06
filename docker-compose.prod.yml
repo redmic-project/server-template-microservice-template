@@ -3,17 +3,17 @@ version: '3.5'
 services:
   template:
     ports:
-      - port
+      - ${MICROSERVICE_PORT}
     networks:
       - traefik-net
     deploy:
       mode: replicated
       replicas: 1
       labels:
-        traefik.port: port
+        traefik.port: "${MICROSERVICE_PORT}"
         traefik.docker.network: traefik-net
-        traefik.frontend.rule: PathPrefix:/api/template
-        traefik.backend: template
+        traefik.frontend.rule: PathPrefix:/api/${MICROSERVICE_NAME}
+        traefik.backend: ${MICROSERVICE_NAME}
       placement:
         constraints:
           - node.role == worker
