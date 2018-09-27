@@ -6,14 +6,12 @@ stages:
 
 maven-build:
   stage: build
-  image: registry.gitlab.com/redmic-project/docker/maven:latest
+  image: registry.gitlab.com/redmic-project/docker/maven
   variables:
     MAVEN_OPTS: -Dmaven.repo.local=.m2/repository
     SPRING_PROFILES_ACTIVE: test
   only:
     - branches
-  except:
-    - master
   cache:
     paths:
       - .m2/repository/
@@ -24,12 +22,12 @@ maven-build:
   after_script:
     - rm -r .m2/repository/es
   artifacts:
-    name: "${CI_PROJECT_NAME}"
+    name: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_NAME}"
     expire_in: '6 months'
     paths:
       - dist/*.jar
 
-docker-build-commit:
+docker-build-commit-non-master-branches:
   stage: package
   image: docker:stable
   variables:
@@ -49,7 +47,7 @@ docker-build-commit:
       -t ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA} -t ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}-latest .
     - docker push ${CI_REGISTRY_IMAGE}
 
-docker-build-tag:
+docker-build-commit-master-branch:
   stage: package
   image: docker:stable
   variables:
@@ -59,15 +57,29 @@ docker-build-tag:
   services:
     - docker:dind
   only:
-    - tags
+    - master
   script:
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
     - >
       docker build --build-arg PARENT_IMAGE_NAME=${PARENT_IMAGE_NAME} --build-arg PARENT_IMAGE_TAG=${PARENT_IMAGE_TAG}
-      -t ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG} -t ${CI_REGISTRY_IMAGE}:latest .
+      -t ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA} -t ${CI_REGISTRY_IMAGE}:latest .
     - docker push ${CI_REGISTRY_IMAGE}
 
-container_scanning:
+docker-tag-already-built-image:
+  stage: package
+  image: docker:stable
+  variables:
+    DOCKER_DRIVER: overlay2
+  services:
+    - docker:dind
+  only:
+    - tags
+  script:
+    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
+    - docker tag ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA} ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
+    - docker push ${CI_REGISTRY_IMAGE}
+
+container-scanning:
   stage: test-package
   image: docker:stable
   variables:
@@ -77,8 +89,6 @@ container_scanning:
     - docker:stable-dind
   only:
     - branches
-  except:
-    - master
   script:
     - docker run -d --name db arminc/clair-db:latest
     - docker run -p 6060:6060 --link db:postgres -d --name clair arminc/clair-local-scan:v2.0.1
@@ -89,26 +99,30 @@ container_scanning:
     - mv clair-scanner_linux_amd64 clair-scanner
     - chmod +x clair-scanner
     - touch clair-whitelist.yml
-    - ./clair-scanner -c http://docker:6060 --ip $(hostname -i) -r gl-sast-container-report.json -l clair.log -w clair-whitelist.yml ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA} || true
+    - >
+      ./clair-scanner -c http://docker:6060 --ip $(hostname -i) -r gl-sast-container-report.json -l clair.log
+      -w clair-whitelist.yml ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA} || true
   artifacts:
     paths: [gl-sast-container-report.json]
 
 deploy-dev:
   stage: deploy
-  image: registry.gitlab.com/redmic-project/docker/docker-deploy:latest
+  image: registry.gitlab.com/redmic-project/docker/docker-deploy
   variables:
     DOCKER_DRIVER: overlay2
     SSH_REMOTE: ${DEV_SSH_REMOTE}
-    SERVICE: ${CI_PROJECT_NAME}
+    STACK: ${CI_PROJECT_NAME}
+    SERVICES_TO_CHECK: ${CI_PROJECT_NAME}_${CI_PROJECT_NAME}
     IMAGE_NAME: ${CI_REGISTRY_IMAGE}
     IMAGE_TAG: ${CI_COMMIT_SHA}
     COMPOSE_FILE: docker-compose.tmpl.yml:docker-compose.dev.yml
+    SPRING_PROFILES_ACTIVE: pre
   services:
     - docker:dind
   script:
     - >
       deploy.sh IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} COMPOSE_FILE=${COMPOSE_FILE}
-      SPRING_PROFILES_ACTIVE=pre
+      SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
   environment:
     name: dev
     url: https://appdev.${DEV_PUBLIC_HOSTNAME}/api/${CI_PROJECT_NAME}
@@ -117,20 +131,22 @@ deploy-dev:
 
 deploy-supporting-branch:
   stage: deploy
-  image: registry.gitlab.com/redmic-project/docker/docker-deploy:latest
+  image: registry.gitlab.com/redmic-project/docker/docker-deploy
   variables:
     DOCKER_DRIVER: overlay2
     SSH_REMOTE: ${DEV_SSH_REMOTE}
-    SERVICE: ${CI_PROJECT_NAME}
+    STACK: ${CI_PROJECT_NAME}
+    SERVICES_TO_CHECK: ${CI_PROJECT_NAME}_${CI_PROJECT_NAME}
     IMAGE_NAME: ${CI_REGISTRY_IMAGE}
     IMAGE_TAG: ${CI_COMMIT_SHA}
     COMPOSE_FILE: docker-compose.tmpl.yml:docker-compose.dev.yml
+    SPRING_PROFILES_ACTIVE: pre
   services:
     - docker:dind
   script:
     - >
       deploy.sh IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} COMPOSE_FILE=${COMPOSE_FILE}
-      SPRING_PROFILES_ACTIVE=pre
+      SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
   environment:
     name: dev
     url: https://appdev.${DEV_PUBLIC_HOSTNAME}/api/${CI_PROJECT_NAME}
@@ -143,23 +159,25 @@ deploy-supporting-branch:
 
 deploy-pro:
   stage: deploy
-  image: registry.gitlab.com/redmic-project/docker/docker-deploy:latest
+  image: registry.gitlab.com/redmic-project/docker/docker-deploy
   variables:
     DOCKER_DRIVER: overlay2
     SSH_REMOTE: ${PRO_SSH_REMOTE}
-    SERVICE: ${CI_PROJECT_NAME}
+    STACK: ${CI_PROJECT_NAME}
+    SERVICES_TO_CHECK: ${CI_PROJECT_NAME}_${CI_PROJECT_NAME}
     IMAGE_NAME: ${CI_REGISTRY_IMAGE}
-    IMAGE_TAG: ${CI_COMMIT_TAG}
+    IMAGE_TAG: ${CI_COMMIT_SHA}
     COMPOSE_FILE: docker-compose.tmpl.yml:docker-compose.prod.yml
+    SPRING_PROFILES_ACTIVE: prod
   services:
     - docker:dind
   script:
     - >
       deploy.sh IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} COMPOSE_FILE=${COMPOSE_FILE}
-      SPRING_PROFILES_ACTIVE=prod
+      SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
   environment:
     name: pro
     url: https://${PRO_PUBLIC_HOSTNAME}/api/${CI_PROJECT_NAME}
   only:
-    - tags
+    - master
   when: manual

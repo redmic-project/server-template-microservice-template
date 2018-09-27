@@ -7,9 +7,9 @@ services:
       - MICROSERVICE_NAME
       - MICROSERVICE_PORT
       - SPRING_PROFILES_ACTIVE
-      - JAVA_OPTS=-Xmx1g -Xss1g
+      - JAVA_OPTS=-XX:MaxRAMFraction=2
     networks:
-      - redmic-net
+      - traefik-net
     healthcheck:
       test: wget --spider -S -t 3 http://localhost:${MICROSERVICE_PORT}/api/${MICROSERVICE_NAME}/actuator/health
       interval: 30s
@@ -18,5 +18,5 @@ services:
       start_period: 2m
 
 networks:
-  redmic-net:
+  traefik-net:
     external: true
