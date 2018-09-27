@@ -15,7 +15,7 @@ Este proyecto sirve de guía para la creación de un nuevo microservicio.
 
 3. Revisar el resto de ficheros del proyecto, remplazando `template` por el nombre adecuado (incluyendo la primera línea de este mismo fichero).
 
-4. Modificar el puerto del microservicio, reemplazando `port` en los ficheros `.env` y `src/main/resources/application.properties`.
+4. Modificar el puerto del microservicio, reemplazando `port` en los ficheros `deploy/.env` y `src/main/resources/application.properties`.
 
 5. En este último fichero `application.properties`, reemplazar el valor de la propiedad `server.servlet-path` por la ruta deseada (en lugar del valor por defecto `path`).
 
@@ -23,4 +23,6 @@ Este proyecto sirve de guía para la creación de un nuevo microservicio.
 
 7. Configurar en el fichero `pom.xml` el *spring-boot-starter* adecuado y añadir las dependencias deseadas.
 
-8. Actualizar la tabla inicial de estado, eliminar estas instrucciones y documentar adecuadamente.
+8. En el fichero .gitlab-ci.yml, modificar STACK y SERVICES_TO_CHECK en todos los enviroment, en caso de no querer el valor por defecto, que es el nombre del propio servicio. 
+
+9. Actualizar la tabla inicial de estado, eliminar estas instrucciones y documentar adecuadamente.
