@@ -23,6 +23,6 @@ Este proyecto sirve de guía para la creación de un nuevo microservicio.
 
 7. Configurar en el fichero `pom.xml` el *spring-boot-starter* adecuado y añadir las dependencias deseadas.
 
-8. En el fichero .gitlab-ci.yml, modificar STACK y SERVICES_TO_CHECK en todos los enviroment, en caso de no querer el valor por defecto, que es el nombre del propio servicio. 
+8. En el fichero `.gitlab-ci.yml`, modificar detalles de despliegue según sea necesario, como el valor de `STACK` o el bloque `script`, donde se pasan las variables de entorno hacia el servicio.
 
 9. Actualizar la tabla inicial de estado, eliminar estas instrucciones y documentar adecuadamente.
