@@ -9,6 +9,7 @@ services:
       - SPRING_PROFILES_ACTIVE
       - JAVA_OPTS=-XX:MaxRAMFraction=2
     networks:
+      - metric-net
       - traefik-net
     healthcheck:
       test: wget --spider -q http://localhost:${MICROSERVICE_PORT}/api/${MICROSERVICE_NAME}/actuator/health
@@ -28,6 +29,10 @@ services:
         window: 3m
 
 networks:
+  metric-net:
+    name: ${METRIC_NET_NAME:-metric-net}
+    external: true
+
   traefik-net:
     name: ${TRAEFIK_NET_NAME:-traefik-net}
     external: true
