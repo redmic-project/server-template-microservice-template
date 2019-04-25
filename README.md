@@ -5,7 +5,7 @@
 | CI status | [![pipeline status](https://gitlab.com/redmic-project/server/template/badges/master/pipeline.svg)](https://gitlab.com/redmic-project/server/template/commits/master) | [![pipeline status](https://gitlab.com/redmic-project/server/template/badges/dev/pipeline.svg)](https://gitlab.com/redmic-project/server/template/commits/dev) |
 | Test coverage | [![coverage report](https://gitlab.com/redmic-project/server/template/badges/master/coverage.svg)](https://gitlab.com/redmic-project/server/template/commits/master) | [![coverage report](https://gitlab.com/redmic-project/server/template/badges/dev/coverage.svg)](https://gitlab.com/redmic-project/server/template/commits/dev) |
 
-Este proyecto sirve de guía para la creación de un nuevo microservicio.
+Este proyecto sirve de guía para la creación de un nuevo microservicio. Una vez hecho clone del proyecto, se aconseja eliminar el directorio .git para limpiar el historial de git y comenzar como un proyecto nuevo.
 
 1. Antes de importar el proyecto, en el fichero `pom.xml`:
 	* Reemplazar `template` por el nombre que se le quiere dar al microservicio.
