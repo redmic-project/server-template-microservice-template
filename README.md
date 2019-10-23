@@ -15,7 +15,7 @@ Este proyecto sirve de guía para la creación de un nuevo microservicio. Una ve
 
 3. Revisar el resto de ficheros del proyecto, remplazando `template` por el nombre adecuado (incluyendo la primera línea de este mismo fichero).
 
-4. Modificar el puerto del microservicio, reemplazando `port` en los ficheros `deploy/.env` y `src/main/resources/application.properties`.
+4. Modificar, si se desea, el puerto por defecto del microservicio, reemplazando `8080` en los ficheros `Dockerfile`, `deploy/.env` y `src/main/resources/application.properties`.
 
 5. En este último fichero `application.properties`, reemplazar el valor de la propiedad `server.servlet-path` por la ruta deseada (en lugar del valor por defecto `path`).
 
@@ -23,6 +23,8 @@ Este proyecto sirve de guía para la creación de un nuevo microservicio. Una ve
 
 7. Configurar en el fichero `pom.xml` el *spring-boot-starter* adecuado y añadir las dependencias deseadas.
 
-8. En el fichero `.gitlab-ci.yml`, modificar detalles de despliegue según sea necesario, como el valor de `STACK` o el bloque `script`, donde se pasan las variables de entorno hacia el servicio.
+8. En el fichero Dockerfile, modificar PARENT_IMAGE_NAME para establecer la del proyecto y que sirva de referencia.
 
-9. Actualizar la tabla inicial de estado, eliminar estas instrucciones y documentar adecuadamente.
+9. En el fichero `.gitlab-ci.yml`, modificar detalles de despliegue según sea necesario, como el valor de `STACK`. Si se desea añadir variables de entorno al despliegue, se deben añadir como variables del proyecto (gitlab) con el prefijo `DD_`. Como mínimo hay que añadir `DD_SPRING_PROFILES_ACTIVE` para cada entorno (dev y pro).
+
+10. Actualizar la tabla inicial de estado, eliminar estas instrucciones y documentar adecuadamente.
