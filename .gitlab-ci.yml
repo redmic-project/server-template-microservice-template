@@ -24,10 +24,6 @@ variables:
   STACK: template
 
 .deploy:
-  script:
-    - >
-      deploy.sh IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} COMPOSE_FILE=${COMPOSE_FILE}
-      SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE} PUBLIC_HOSTNAME=${PUBLIC_HOSTNAME}
   environment:
     url: https://${PUBLIC_HOSTNAME}/api/${CI_PROJECT_NAME}
 
