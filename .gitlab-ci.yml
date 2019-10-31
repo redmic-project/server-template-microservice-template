@@ -26,11 +26,3 @@ variables:
 .deploy:
   environment:
     url: https://${PUBLIC_HOSTNAME}/api/${CI_PROJECT_NAME}
-
-.deploy-development:
-  variables:
-    SPRING_PROFILES_ACTIVE: pre
-
-.deploy-production:
-  variables:
-    SPRING_PROFILES_ACTIVE: prod
